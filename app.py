@@ -6,22 +6,19 @@ import streamlit as st
 from transformers import pipeline
 from nltk.sentiment import SentimentIntensityAnalyzer
 
-# Ensure NLTK resources are downloaded
 nltk.download("vader_lexicon")
 nltk.download("punkt")
 
-# Streamlit UI Customization
 st.set_page_config(page_title="AI Dream Interpreter", page_icon=" 🛌💤🌙", layout="centered")
 
 st.image("https://media.giphy.com/media/26BRzozg4TCBXv6QU/giphy.gif", use_container_width=True)
 
 st.markdown("### 🌙 Dream 🛌💤")
 
-# Title and Description
 st.markdown("<h1 style='text-align: center;'>🌙 AI Dream Interpreter</h1>", unsafe_allow_html=True)
 st.write("💭 Select a common dream or describe your own dream for AI interpretation.")
 
-# Cache heavy AI models
+
 @st.cache_resource
 def load_models():
     sentiment_model = pipeline("sentiment-analysis")
@@ -30,10 +27,8 @@ def load_models():
 
 sentiment_model, dream_model = load_models()
 
-# Initialize Sentiment Analysis
 sia = SentimentIntensityAnalyzer()
 
-# Full list of dreams added for selection
 dream_suggestions = [
     "Flying in the sky 🕊️",
     "Falling from a high place ⬇️",
@@ -59,7 +54,6 @@ dream_suggestions = [
     "Finding an unknown door 🚪",
 ]
 
-# Common Dream Symbols
 dream_symbols = {
     "Flying": "You seek freedom or have high ambitions.",
     "Falling": "You might be experiencing anxiety or fear of failure.",
@@ -85,31 +79,27 @@ dream_symbols = {
     "Unknown Door": "Represents new opportunities, secrets, or unexplored paths.",
 }
 
-# Dropdown for dream selection
 selected_dream = st.selectbox("🔮 Choose a common dream:", ["Type your own"] + dream_suggestions)
 
-# Input from the user (Auto-fills if a predefined dream is selected)
 dream_text = st.text_area("💬 Describe your dream:", value=(selected_dream if selected_dream != "Type your own" else ""))
 
-# Dream Interpretation Function
+
 def interpret_dream(dream_text):
     """AI-powered dream interpretation function."""
     try:
-        # Sentiment analysis
+    
         sentiment = sentiment_model(dream_text)[0]
         sentiment_label = sentiment["label"].upper()
         sentiment_score = sia.polarity_scores(dream_text)["compound"]
 
-        # AI-generated dream interpretation
+    
         ai_interpretation = dream_model(
             dream_text, max_length=100, num_return_sequences=1, return_full_text=False
         )[0]["generated_text"]
 
-        # Match dream symbols
         keywords = nltk.word_tokenize(dream_text.lower())
         matched_symbols = [dream_symbols[word.title()] for word in keywords if word.title() in dream_symbols]
 
-        # Construct final interpretation
         final_interpretation = f"### 🌙 **Dream Analysis:**  \n{ai_interpretation}  \n"
         final_interpretation += f"📊 **Sentiment:**  \n{sentiment_label} (Score: {sentiment_score})  \n"
         if matched_symbols:
@@ -120,7 +110,6 @@ def interpret_dream(dream_text):
     except Exception as e:
         return f"🚨 Error: {e}"
 
-# Submit button
 if st.button("✨ Interpret My Dream ✨"):
     if dream_text:
         result = interpret_dream(dream_text)
